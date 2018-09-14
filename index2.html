@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js"></script>
+    <link rel="stylesheet" href="./index.css">
+</head>
+
+<body>
+
+<div id="time1"></div>
+<div id="time2"></div>
+<div id="statetest"></div>
+
+</body>
+
+<script type="text/babel">
+
+    // Functional Component of clock
+    // functional component is easier to implement than class, but has less function (state)
+    function Clock1(props) {
+        return (
+            <div>
+                <h1>It is {props.date.toLocaleTimeString()}.</h1>
+            </div>
+        );
+    }
+    function tick() {
+        ReactDOM.render(<Clock1 date={new Date()} />, document.getElementById('time1'));
+    }
+    setInterval(tick, 1000);
+
+
+    // Class based component, that could use state
+
+    class Clock2 extends React.Component {
+
+        constructor(props) {
+            super(props);
+            // the change of state, will trigger calling render() again
+            // state should be initialized as an object, the state could contains multiple keys
+            this.state = {date: new Date()};
+        }
+
+        tick() {
+            this.setState({
+                date: new Date() // set a new object
+            });
+        }
+
+        // this is called after render (after mount)
+        // some DOM operation can be implement in this lifecycle
+        componentDidMount() {
+            // use arrow function
+            // if setInterval(this.tick(), 1000), this.tick() will considered as a value, lose it's context
+            // timerId is the resource of this component, needs to be recycled after before killing the component
+            this.timerId = setInterval(() => this.tick(), 1000);
+        }
+
+        // when this component will be replaced (before dead)
+        // If there are some local storage, or cookies, or involve some resources (need recycle)
+        // Can only be called use react, innerHTML will not work
+        componentWillUnmount() {
+            clearInterval(this.timerID);
+        }
+
+        // render will be called after the state changes
+        // render will get a react element, will compare with previous element, only render diff part
+        render() {
+            return (
+                <div>
+                    <h1>It is {this.state.date.toLocaleTimeString()}.</h1>
+                </div>
+            );
+        }
+    }
+
+    // Asynchronous state test
+
+    class App extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = { count: 0 };
+            this.onClick = this.onClick.bind(this);
+            this.onClick2 = this.onClick2.bind(this);
+        }
+
+        // all state log will be 0 at the beginning, since set state is asynchronous
+        // if +1 +2 +3, the count in the end would be 3, in the render is 3, react will consider itself
+        // react will batch all state change, then call render
+        onClick() {
+            console.log('init: this.state.count = ' + this.state.count);
+            this.setState({ count: this.state.count + 1 });
+            console.log('this.state.count = ' + this.state.count);
+            this.setState({ count: this.state.count + 1 });
+            console.log('this.state.count = ' + this.state.count);
+            this.setState({ count: this.state.count + 1 });
+            console.log('this.state.count = ' + this.state.count);
+        }
+
+        onClick2() {
+            console.log('init: this.state.count = ' + this.state.count);
+            this.setState(prevState => ({ count: prevState.count + 1 }));
+            console.log('this.state.count = ' + this.state.count);
+            this.setState(prevState => ({ count: prevState.count + 1 }));
+            console.log('this.state.count = ' + this.state.count);
+            this.setState(prevState => ({ count: prevState.count + 1 }));
+            console.log('this.state.count = ' + this.state.count);
+        }
+
+        // render state will be the result after all asynchronous operations
+        // since state update are merged
+        render() {
+            return (
+                <div>
+                    <div>{this.state.count}</div>
+                    <button onClick={this.onClick2}>Add</button>
+                </div>
+            );
+        }
+    }
+
+    ReactDOM.render(<Clock2 />, document.getElementById('time2'));
+    ReactDOM.render(<App />, document.getElementById('statetest'));
+
+</script>
+
+</html>
