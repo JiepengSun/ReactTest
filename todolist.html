@@ -25,13 +25,18 @@
                 done: false
             };
             this.onClick = this.onClick.bind(this);
+            this.onDeleteItem = this.onDeleteItem.bind(this);
         }
 
         onClick() {
-            console.log(this.state.done);
             this.setState(function (prevState) {
                 return { done: !prevState.done }
             })
+        }
+
+        onDeleteItem() {
+            // console.log(this.props.index);
+            this.props.handleDeleteTodo(this.props.index);
         }
 
         render() {
@@ -39,14 +44,120 @@
             return (
                 <div>
                     <button onClick={this.onClick}>{this.state.done ? 'Undo' : 'Done'}</button>
-                    <span style={textStyle}>firstItem</span>
+                    <span style={textStyle}>
+                        {this.props.text}
+                    </span>
+                    <button onClick={this.onDeleteItem}>Delete</button>
                 </div>
             );
         }
 
     }
 
-    ReactDOM.render(<TodoItem/>, document.getElementById('root'));
+    class TodoList extends React.Component {
+
+        constructor(props) {
+            super(props)
+        }
+
+        render() {
+            // in the map, there should be function that returns react element
+            // => arrow function will automatically bind
+            return (
+                <div>
+                    {this.props.todos.map((str, index) => (
+                        <TodoItem
+                            text={str}
+                            key={index}
+                            index={index}
+                            handleDeleteTodo={this.props.handleDeleteTodo}/>)
+                    )}
+                </div>
+            )
+        }
+
+    }
+
+    class UserInput extends React.Component {
+
+        constructor(props) {
+            super(props);
+            // bind will tell which context should this.onClickAdd use
+            // since onClick={this.onClickAdd} will cause it lose it's context
+            this.onClickAdd = this.onClickAdd.bind(this);
+            this.onInputChange = this.onInputChange.bind(this);
+            this.state={
+                userInput: ''
+            }
+        }
+
+        onClickAdd() {
+            console.log('click');
+            this.props.handleAddTodo(this.state.userInput)
+        }
+
+        onInputChange(e) {
+            this.setState({
+                userInput: e.target.value
+            });
+            console.log(e.target.value)
+        }
+
+        render() {
+            return (
+                <div>
+                    <input type="text" value={this.state.userInput} onChange={this.onInputChange}/>
+                    <button onClick={this.onClickAdd}>Add</button>
+                </div>
+            )
+        }
+    }
+
+    class App extends React.Component {
+
+        constructor(props) {
+            super(props);
+            // make handleAddTodo bind App instance
+            // so call this.setState will change App state
+            this.handleAddTodo = this.handleAddTodo.bind(this);
+            this.handleDeleteTodo = this.handleDeleteTodo.bind(this);
+            this.state={
+                todos: ['one', 'two', 'three', 'four', 'five']
+            }
+        }
+
+        // once the app level state is changed, the app level will be re render
+        handleAddTodo(text) {
+            this.setState(function(prevState) {
+                return {
+                    // don't use preState.todos.push, do not change state!
+                    // todos: prevState.todos.push(text)
+                    todos: [...prevState.todos, text]
+                }
+            })
+        }
+
+        handleDeleteTodo(index) {
+            this.setState(function (prevState) {
+                return {
+                    todos: [...prevState.todos.slice(0, index), ...prevState.todos.slice(index + 1, prevState.todos.length)]
+                }
+            })
+        }
+
+        render() {
+            return (
+                <div>
+                    <TodoList todos={this.state.todos} handleDeleteTodo={this.handleDeleteTodo}/>
+                    <UserInput handleAddTodo={this.handleAddTodo}/>
+                </div>
+            )
+        }
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+
+
 
 </script>
 
