@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js"></script>
+    <link rel="stylesheet" href="./index.css">
+</head>
+
+<body>
+
+<div id="root"></div>
+
+</body>
+
+<script type="text/babel">
+
+    /*
+        Mounting
+            1.	set default props (MyComponent.defaultProps = {?})
+            2.	set intial state (this.state = {?} in constructor)
+            3.	componentWillMount()
+            4.	render() Children initialization & life cycle kickoff
+            5.	componentDidMount()
+        Update
+            1.	componentWillReceiveProps()
+            2.	shouldComponentUpdate()
+            3.	componentWillUpdate()
+            4.	render() Children Life cycle methods
+            5.	componentDidUpdate()
+        Unmount
+            1.	componentWillUnmount()
+            2.	Children Life cycle methods
+            3.	Instance destroyed for Garbage Collection
+     */
+
+    class Counter extends React.Component {
+
+        constructor(props) {
+            console.log(`${props.name} constructor`);
+            super(props);
+            this.state = { count: 0 };
+        }
+        componentWillMount() {
+            console.log(`${this.props.name} componentWillMount`);
+        }
+        componentDidMount() {
+            console.log(`${this.props.name} componentDidMount`);
+        }
+        componentWillUnmount() {
+            console.log(`${this.props.name} componentWillUnmount`);
+        }
+        render() {
+            console.log(`${this.props.name} render`);
+            return (
+                <div>
+                    <button>{this.props.name} counts {this.state.count}</button>
+                </div>
+            );
+        }
+    }
+
+    // Mounting tree test
+    // before render(), use preorder traversal
+    // Did Mount is post order
+    // App depends on child (Counter), when Counter complete, App then complete
+
+    /*  test output:
+        app constructor
+        app componentWillMount
+        app render
+        left constructor
+        left componentWillMount
+        left render
+        middle constructor
+        middle componentWillMount
+        middle render
+        right constructor
+        right componentWillMount
+        right render
+        left componentDidMount
+        middle componentDidMount
+        right componentDidMount
+        app componentDidMount
+     */
+
+    class App extends React.Component {
+        constructor(props) {
+            console.log(`${props.name} constructor`);
+            super(props);
+        }
+        componentWillMount() {
+            console.log(`${this.props.name} componentWillMount`);
+        }
+        componentDidMount() {
+            console.log(`${this.props.name} componentDidMount`);
+        }
+        componentWillUnmount() {
+            console.log(`${this.props.name} componentWillUnmount`);
+        }
+        render() {
+            console.log(`${this.props.name} render`);
+            return (
+                <div>
+                    <Counter name="left"/>
+                    <Counter name="middle"/>
+                    <Counter name="right"/>
+                </div>
+            );
+        }
+    }
+    ReactDOM.render(<App name="app"/>, document.getElementById('root'));
+
+
+
+</script>
+
+</html>

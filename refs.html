@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js"></script>
+    <link rel="stylesheet" href="./index.css">
+</head>
+
+<body>
+
+<div id="root"></div>
+
+</body>
+
+<script type="text/babel">
+
+    // Adding ref to a DOM element
+
+    class CustomTextInput extends React.Component {
+        constructor(props) {
+            super(props);
+            this.focusTextInput = this.focusTextInput.bind(this);
+        }
+
+        focusTextInput() {
+            // Explicitly focus the text input using the raw DOM API
+            this.textInput.focus();
+        }
+
+        render() {
+            // Use the `ref` callback to store a reference to the text input DOM
+            // element in an instance field (for example, this.textInput).
+
+            // in first input, when react get <input>, it will call the function
+            // this.textInput will become the <input>
+            return (
+                <div>
+                    <input
+                        type="text"
+                        ref={(input) => { this.textInput = input; }} />
+                    <input
+                        type="button"
+                        value="Focus the text input"
+                        onClick={this.focusTextInput}
+                    />
+                </div>
+            );
+        }
+    }
+
+    // Adding ref to a class component
+
+    class AutoFocusTextInput extends React.Component {
+        componentDidMount() {
+            this.customTextInput.focusTextInput();
+        }
+
+        render() {
+            return (
+                <CustomTextInput
+                    ref={(input) => { this.customTextInput = input; }} />
+            );
+        }
+    }
+
+    ReactDOM.render(<AutoFocusTextInput/>, document.getElementById('root'));
+
+
+</script>
+
+</html>

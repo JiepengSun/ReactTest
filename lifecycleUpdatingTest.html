@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js"></script>
+    <link rel="stylesheet" href="./index.css">
+</head>
+
+<body>
+
+<div id="root"></div>
+
+</body>
+
+<script type="text/babel">
+
+    /*
+        When update component, Updating Phase will not be called
+
+        test output:
+
+        left shouldComponentUpdate this.state.count = 0 nextState = 1
+        left componentWillUpdate this.state.count = 0 nextState = 1
+        left render
+        left componentDidUpdate state.count = 1 prevState = 0
+     */
+
+    class Counter extends React.Component {
+
+        constructor(props) {
+            console.log(`${props.name} constructor`);
+            super(props);
+            this.state = { count: 0 };
+            // when onBtnClick is the parameter of onClick, context will lose
+            // when call onBtnClick, it doesn't know the Counter is the context
+            // so onBtnClick should be bind with the context, the counter, this
+            this.onBtnClick = this.onBtnClick.bind(this);
+        }
+        componentWillMount() {
+            console.log(`${this.props.name} componentWillMount`);
+        }
+        componentDidMount() {
+            console.log(`${this.props.name} componentDidMount`);
+        }
+        componentWillUnmount() {
+            console.log(`${this.props.name} componentWillUnmount`);
+        }
+
+        // Update
+        componentWillReceiveProps(nextProps) {
+            console.log(`${this.props.name} componentWillReceiveProps state.count = ${this.state.count}`);
+        }
+
+        // should component is very important
+        shouldComponentUpdate(nextProps, nextState) {
+            console.log(`${this.props.name} shouldComponentUpdate this.state.count = ${this.state.count} nextState = ${nextState.count}`);
+            // return nextState.count >= 3;
+            // only the state or props change will cause render update
+            // shouldComponentUpdate method will check this difference
+            // could improve the performance of the program, if there is no change, don't need to execute following code
+            return nextState.count !== this.state.count || nextProps.name !== this.props.name || nextProps.isBig !== this.props.isBig;
+            // return true;
+        }
+        componentWillUpdate(nextProps, nextState) {
+            console.log(`${this.props.name} componentWillUpdate this.state.count = ${this.state.count} nextState = ${nextState.count}`);
+        }
+        componentDidUpdate(prevProps, prevState) {
+            console.log(`${this.props.name} componentDidUpdate state.count = ${this.state.count} prevState = ${prevState.count}`);
+        }
+
+        // react will batch setState, when all setState are done, life cycle would be change
+        // react will try to reduce the calling of life cycle change, for high performance
+
+        onBtnClick() {
+            // console.log('click');
+            this.setState((prevState) => ({ count: prevState.count + 1}));
+            this.setState((prevState) => ({ count: prevState.count + 1}));
+            this.setState((prevState) => ({ count: prevState.count + 1}));
+        }
+
+        // after will update and before render
+        // the state will be change
+        // in render, this.state is the next state in should and will update
+
+        render() {
+            const btnStyle = { fontSize: this.props.isBig ? '30px' : '10px'};
+            console.log(`${this.props.name} render`);
+            return (
+                <div>
+                    <button onClick={this.onBtnClick} style={btnStyle}>
+                        {this.props.name} counts {this.state.count}
+                    </button>
+                </div>
+            );
+        }
+    }
+
+
+    /*
+        Update Tree
+
+        app shouldComponentUpdate this.state.count = undefined nextState = undefined
+        app componentWillUpdate this.state.count = undefined nextState = undefined
+        app render
+        left componentWillReceiveProps state.count = 0
+        left shouldComponentUpdate this.state.count = 0 nextState = 0
+        left componentWillUpdate this.state.count = 0 nextState = 0
+        left render
+        right componentWillReceiveProps state.count = 0
+        right shouldComponentUpdate this.state.count = 0 nextState = 0
+        right componentWillUpdate this.state.count = 0 nextState = 0
+        right render
+        left componentDidUpdate state.count = 0 prevState = 0
+        right componentDidUpdate state.count = 0 prevState = 0
+        app componentDidUpdate state.count = undefined prevState = undefined
+
+        upper level set state, will call lower level willRecieveProps, shouldCompomentUpdate, componentWillUpdate, render !
+        should will render preorder !
+        did postorder !
+     */
+
+    class App extends React.Component {
+        constructor(props) {
+            console.log(`${props.name} constructor`);
+            super(props);
+            this.state = { isBig: false };
+            this.onToggleFont = this.onToggleFont.bind(this);
+        }
+        componentWillMount() {
+            console.log(`${this.props.name} componentWillMount`);
+        }
+        componentDidMount() {
+            console.log(`${this.props.name} componentDidMount`);
+        }
+        componentWillUnmount() {
+            console.log(`${this.props.name} componentWillUnmount`);
+        }
+
+        // Update
+        componentWillReceiveProps(nextProps) {
+            console.log(`${this.props.name} componentWillReceiveProps state.count = ${this.state.count}`);
+        }
+
+        // should component is very important
+        shouldComponentUpdate(nextProps, nextState) {
+            console.log(`${this.props.name} shouldComponentUpdate this.state.count = ${this.state.count} nextState = ${nextState.count}`);
+            // return nextState.count >= 3;
+            // only the state or props change will cause render update
+            // shouldComponentUpdate method will check this difference
+            // could improve the performance of the program, if there is no change, don't need to execute following code
+            return nextState.count !== this.state.count || nextState.isBig !== this.state.isBig;
+        }
+        componentWillUpdate(nextProps, nextState) {
+            console.log(`${this.props.name} componentWillUpdate this.state.count = ${this.state.count} nextState = ${nextState.count}`);
+        }
+        componentDidUpdate(prevProps, prevState) {
+            console.log(`${this.props.name} componentDidUpdate state.count = ${this.state.count} prevState = ${prevState.count}`);
+        }
+
+        onToggleFont() {
+            this.setState((prevState) => ({ isBig: !prevState.isBig}))
+        }
+
+        render() {
+            console.log(`${this.props.name} render`);
+            return (
+                <div>
+                    <button onClick={this.onToggleFont}>Toggle Font</button>
+                    <Counter name="left" isBig={this.state.isBig}/>
+                    <Counter name="right" isBig={this.state.isBig}/>
+                </div>
+            );
+        }
+    }
+    ReactDOM.render(<App name="app"/>, document.getElementById('root'));
+
+
+
+</script>
+
+</html>

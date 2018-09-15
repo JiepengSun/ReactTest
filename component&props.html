@@ -179,7 +179,7 @@
         return (
             <ul>
                 {props.todos.map(function (todo, index) {
-                    return <Item message={todo} key={index}/>
+                    return <Item message={todo} key={jsx}/>
                 })}
             </ul>
         );
@@ -190,7 +190,7 @@
         return (
             <ul>
                 {props.todos && props.todos.length > 0 ?
-                    props.todos.map((message, index) => <Item key={index} message={message} />)
+                    props.todos.map((message, index) => <Item key={jsx} message={message} />)
                     : 'Nothing todo!!!'}
             </ul>
         );
